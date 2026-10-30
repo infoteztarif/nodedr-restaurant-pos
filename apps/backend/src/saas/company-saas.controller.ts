@@ -12,10 +12,14 @@ import type { SessionUser } from '@nodedr-restaurant/types';
 import { Auth } from '../common/decorators/auth.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
+import { EntitlementsService } from './entitlements.service';
 
 @Controller('v1/company/access')
 export class CompanySaasController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly entitlements: EntitlementsService,
+  ) {}
 
   @Auth('settings.manage')
   @Get()
@@ -46,7 +50,7 @@ export class CompanySaasController {
 
   @Auth('settings.manage')
   @Post('departments')
-  createDepartment(
+  async createDepartment(
     @CurrentUser() user: SessionUser,
     @Body()
     body: {
@@ -60,6 +64,19 @@ export class CompanySaasController {
       throw new BadRequestException('Name and code required');
     if (body.moduleKey && !Object.values(ModuleKey).includes(body.moduleKey)) {
       throw new BadRequestException('Invalid module');
+    }
+    if (body.moduleKey) {
+      await this.entitlements.assertModuleEnabled(
+        user.restaurantId,
+        body.moduleKey,
+      );
+    }
+    if (body.branchId) {
+      const branch = await this.prisma.branch.findFirst({
+        where: { id: body.branchId, restaurantId: user.restaurantId },
+        select: { id: true },
+      });
+      if (!branch) throw new BadRequestException('Branch not found');
     }
     return this.prisma.department.create({
       data: {

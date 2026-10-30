@@ -22,14 +22,36 @@ const TABS: SettingsTab[] = [
   { label: "General", href: "/settings" },
   { label: "Staff", href: "/settings/staff", permission: "users.manage" },
   { label: "Roles", href: "/settings/roles", permission: "roles.manage" },
-  { label: "Audit Log", href: "/settings/audit-log", permission: "audit_log.view" },
+  {
+    label: "Departments",
+    href: "/settings/access",
+    permission: "settings.manage",
+  },
+  {
+    label: "Audit Log",
+    href: "/settings/audit-log",
+    permission: "audit_log.view",
+  },
   { label: "Backup", href: "/settings/backup", permission: "backup.manage" },
   { label: "Updates", href: "/settings/updates", permission: "system.update" },
-  { label: "Server Sync", href: "/settings/sync", permission: "settings.manage" },
+  {
+    label: "Server Sync",
+    href: "/settings/sync",
+    permission: "settings.manage",
+  },
   { label: "API Keys", href: "/settings/api-keys" },
   { label: "Security", href: "/settings/security" },
-  { label: "Webhooks", href: "/settings/webhooks", permission: "settings.manage" },
-  { label: "VERI*FACTU", href: "/settings/verifactu", permission: "settings.manage", country: "ES" },
+  {
+    label: "Webhooks",
+    href: "/settings/webhooks",
+    permission: "settings.manage",
+  },
+  {
+    label: "VERI*FACTU",
+    href: "/settings/verifactu",
+    permission: "settings.manage",
+    country: "ES",
+  },
 ];
 
 export function SettingsTabs() {
@@ -50,7 +72,9 @@ export function SettingsTabs() {
     <nav className="flex gap-1 border-b border-border">
       {visibleTabs.map((tab) => {
         const isActive =
-          tab.href === "/settings" ? pathname === "/settings" : pathname?.startsWith(tab.href);
+          tab.href === "/settings"
+            ? pathname === "/settings"
+            : pathname?.startsWith(tab.href);
         return (
           <Link
             key={tab.href}

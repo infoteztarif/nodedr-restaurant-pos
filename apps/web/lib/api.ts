@@ -27,26 +27,83 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: res.statusText }));
-    throw new ApiError(body.message ?? "Request failed", res.status, body.issues, body.code);
+    throw new ApiError(
+      body.message ?? "Request failed",
+      res.status,
+      body.issues,
+      body.code,
+    );
   }
 
   if (res.status === 204) return undefined as T;
   return res.json();
 }
 
+async function platformRequest<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const token =
+    typeof window === "undefined"
+      ? null
+      : window.localStorage.getItem("platform_token");
+  const res = await fetch(`${API_BASE}/platform${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new ApiError(
+      body.message ?? "Request failed",
+      res.status,
+      body.issues,
+      body.code,
+    );
+  }
+  return res.status === 204 ? (undefined as T) : res.json();
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) =>
-    request<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
+    request<T>(path, {
+      method: "POST",
+      body: body ? JSON.stringify(body) : undefined,
+    }),
   patch: <T>(path: string, body?: unknown) =>
-    request<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
+    request<T>(path, {
+      method: "PATCH",
+      body: body ? JSON.stringify(body) : undefined,
+    }),
   put: <T>(path: string, body?: unknown) =>
-    request<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
+    request<T>(path, {
+      method: "PUT",
+      body: body ? JSON.stringify(body) : undefined,
+    }),
   delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
-  postForm: <T>(path: string, form: FormData) => request<T>(path, { method: "POST", body: form }),
+  postForm: <T>(path: string, form: FormData) =>
+    request<T>(path, { method: "POST", body: form }),
   upload: <T>(path: string, file: File) => {
     const formData = new FormData();
     formData.append("file", file);
     return request<T>(path, { method: "POST", body: formData });
   },
+};
+
+export const platformApi = {
+  get: <T>(path: string) => platformRequest<T>(path),
+  post: <T>(path: string, body?: unknown) =>
+    platformRequest<T>(path, {
+      method: "POST",
+      body: body ? JSON.stringify(body) : undefined,
+    }),
+  patch: <T>(path: string, body?: unknown) =>
+    platformRequest<T>(path, {
+      method: "PATCH",
+      body: body ? JSON.stringify(body) : undefined,
+    }),
 };

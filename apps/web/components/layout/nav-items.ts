@@ -14,6 +14,7 @@ import {
   Package,
   Settings,
   ShoppingCart,
+  Sparkles,
   UsersRound,
   UtensilsCrossed,
   type LucideIcon,
@@ -104,6 +105,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/reports",
     icon: BarChart3,
     permission: "reports.access",
+  },
+  {
+    labelKey: "nav.ai",
+    href: "/ai",
+    icon: Sparkles,
+    permission: "ai.reports",
   },
   {
     labelKey: "nav.marketing",

@@ -168,6 +168,51 @@ export class PlatformController {
     });
   }
 
+  @UseGuards(PlatformAuthGuard)
+  @Post('tenants/:id/subscriptions')
+  async assignSubscription(
+    @Req() request: PlatformRequest,
+    @Param('id') restaurantId: string,
+    @Body()
+    body: {
+      planId?: string;
+      status?: SubscriptionStatus;
+      currentPeriodEnd?: string;
+    },
+  ) {
+    this.assertSuperAdmin(request);
+    if (!body.planId) throw new BadRequestException('planId required');
+    const plan = await this.prisma.subscriptionPlan.findFirst({
+      where: { id: body.planId, isActive: true },
+    });
+    if (!plan) throw new BadRequestException('Active plan not found');
+    const status = body.status ?? SubscriptionStatus.ACTIVE;
+    if (!Object.values(SubscriptionStatus).includes(status)) {
+      throw new BadRequestException('Invalid subscription status');
+    }
+    await this.prisma.subscription.updateMany({
+      where: {
+        restaurantId,
+        status: {
+          in: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING],
+        },
+      },
+      data: { status: SubscriptionStatus.CANCELLED, cancelledAt: new Date() },
+    });
+    return this.prisma.subscription.create({
+      data: {
+        restaurantId,
+        planId: plan.id,
+        status,
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: body.currentPeriodEnd
+          ? new Date(body.currentPeriodEnd)
+          : undefined,
+      },
+      include: { plan: true },
+    });
+  }
+
   private assertSuperAdmin(request: PlatformRequest) {
     if (request.platformUser.role !== PlatformRole.SUPER_ADMIN) {
       throw new ForbiddenException('Super Admin access required');
