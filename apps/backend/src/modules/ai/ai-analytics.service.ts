@@ -106,7 +106,7 @@ export class AiAnalyticsService {
         })
         .sort((a, b) => {
           const order: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
-          return order[a.risk]! - order[b.risk]!;
+          return order[a.risk] - order[b.risk];
         }),
     };
   }

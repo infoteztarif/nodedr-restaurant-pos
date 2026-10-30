@@ -422,11 +422,17 @@ export class SyncService implements OnModuleInit, OnModuleDestroy {
   private async cycle() {
     const s = await this.state();
     if (!s.enabled || s.role !== 'client') return null;
+    if (!s.serverUrl || !s.apiKey) {
+      await this.prisma.$executeRawUnsafe(
+        `UPDATE sync_state SET "lastError" = 'Server address and sync key are required' WHERE id = 1`,
+      );
+      return null;
+    }
     let pulled = 0;
     let pushed = 0;
     const conflicts: ApplyResult['conflicts'] = [];
     try {
-      await this.testConnection(s.serverUrl!, s.apiKey!);
+      await this.testConnection(s.serverUrl, s.apiKey);
 
       let since = s.lastPullSeq;
       for (;;) {

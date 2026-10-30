@@ -1866,14 +1866,14 @@ export class OrdersService {
               `Cannot return ${ret.quantity} x ${item.nameSnapshot} — only ${item.quantity - alreadyReturned} left to return`,
             );
           }
-          await tx.orderItemStockReturn.create({
+          const stockReturn = await tx.orderItemStockReturn.create({
             data: {
               orderItemId: item.id,
               refundId: created.id,
               quantity: ret.quantity,
             },
           });
-          item.stockReturns.push({ quantity: ret.quantity } as never);
+          item.stockReturns.push(stockReturn);
           lines.push({ menuItemId: item.menuItemId, quantity: ret.quantity });
         }
         await this.inventory.restoreForReturn(

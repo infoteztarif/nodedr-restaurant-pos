@@ -519,7 +519,8 @@ run('Order flow: accept, kitchen, bill, payment, roles (e2e)', () => {
       const audit = await prisma.auditLog.findFirst({
         where: { entity: 'Kot', entityId: round2.id, action: 'kot.rejected' },
       });
-      expect((audit?.metadata as any).lines[0]).toMatchObject({ quantity: 2 });
+      const metadata = audit?.metadata as { lines?: unknown[] } | null;
+      expect(metadata?.lines?.[0]).toMatchObject({ quantity: 2 });
     });
 
     it('food already cooking needs a manager and an explicit confirmation', async () => {

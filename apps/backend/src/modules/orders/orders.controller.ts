@@ -178,7 +178,7 @@ export class OrdersController {
     private readonly verifactu: VerifactuService,
   ) {}
 
-  @Auth('orders.create')
+  @Auth('orders.view')
   @Get()
   async listOpen(
     @CurrentUser() user: SessionUser,
@@ -189,7 +189,7 @@ export class OrdersController {
     return this.ordersService.listOpen(branchId, tableId);
   }
 
-  @Auth('orders.create')
+  @Auth('orders.view')
   @Get('manage')
   async listForManagement(
     @CurrentUser() user: SessionUser,
@@ -206,7 +206,7 @@ export class OrdersController {
     });
   }
 
-  @Auth('orders.create')
+  @Auth('orders.view')
   @Get(':id')
   async getOrder(
     @CurrentUser() user: SessionUser,

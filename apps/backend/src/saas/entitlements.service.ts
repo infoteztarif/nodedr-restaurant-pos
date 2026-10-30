@@ -44,7 +44,10 @@ export class EntitlementsService {
       select: { enabled: true, expiresAt: true },
     });
     if (override) {
-      if (!override.enabled || (override.expiresAt && override.expiresAt <= new Date())) {
+      if (
+        !override.enabled ||
+        (override.expiresAt && override.expiresAt <= new Date())
+      ) {
         throw new ForbiddenException(`${moduleKey} module is not enabled`);
       }
       return;
@@ -77,7 +80,9 @@ export class EntitlementsService {
       throw new ForbiddenException('Subscription period has expired');
     }
     if (subscription.plan.modules[0]?.enabled !== true) {
-      throw new ForbiddenException(`${moduleKey} module is not included in the plan`);
+      throw new ForbiddenException(
+        `${moduleKey} module is not included in the plan`,
+      );
     }
   }
 }

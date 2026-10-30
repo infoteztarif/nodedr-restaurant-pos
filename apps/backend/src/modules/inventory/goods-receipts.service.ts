@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import type { GoodsReceiptDto } from '@nodedr-restaurant/types';
 import { PrismaService } from '../../prisma/prisma.service';
 import { round3, round4 } from '../../common/money';
@@ -186,10 +186,8 @@ export class GoodsReceiptsService {
         });
         // Keep the in-memory ingredient snapshot current for subsequent
         // lines in this same GRN referencing the same ingredient twice.
-        ingredient.currentStock =
-          newStock as unknown as typeof ingredient.currentStock;
-        ingredient.costPerUnit =
-          newCost as unknown as typeof ingredient.costPerUnit;
+        ingredient.currentStock = new Prisma.Decimal(newStock);
+        ingredient.costPerUnit = new Prisma.Decimal(newCost);
 
         if (item.purchaseOrderItemId) {
           receivedByPoItem.set(

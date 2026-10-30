@@ -138,7 +138,8 @@ export class ReportsService {
           { n: number; sales: number; tax: number; disc: number; tips: number }
         >();
         for (const o of orders) {
-          const d = localDate(o.billedAt!, tz);
+          if (!o.billedAt) continue;
+          const d = localDate(o.billedAt, tz);
           const row = byDay.get(d) ?? {
             n: 0,
             sales: 0,
@@ -283,7 +284,7 @@ export class ReportsService {
         });
         return out(
           ['Order', 'Date', 'Discount', 'Coupon', 'Happy hour'],
-          orders.map((o) => [
+          orders.filter((o) => o.billedAt !== null).map((o) => [
             o.orderNumber,
             localDate(o.billedAt!, tz),
             round2(Number(o.discountAmount)),
@@ -423,14 +424,16 @@ export class ReportsService {
           take: 50,
         });
         const people = await this.prisma.customer.findMany({
-          where: { id: { in: g.map((r) => r.customerId!) } },
+          where: {
+            id: { in: g.flatMap((r) => (r.customerId ? [r.customerId] : [])) },
+          },
           select: { id: true, name: true, phone: true, loyaltyPoints: true },
         });
         const byId = new Map(people.map((p) => [p.id, p]));
         return out(
           ['Customer', 'Phone', 'Orders', 'Spend', 'Loyalty points'],
           g.map((r) => {
-            const p = byId.get(r.customerId!);
+            const p = r.customerId ? byId.get(r.customerId) : undefined;
             return [
               p?.name ?? '(no name)',
               p?.phone,
@@ -452,7 +455,11 @@ export class ReportsService {
           },
           select: { customerId: true, billedAt: true },
         });
-        const ids = [...new Set(inRange.map((o) => o.customerId!))];
+        const complete = inRange.filter(
+          (o): o is typeof o & { customerId: string; billedAt: Date } =>
+            o.customerId !== null && o.billedAt !== null,
+        );
+        const ids = [...new Set(complete.map((o) => o.customerId))];
         const earlier = await this.prisma.order.findMany({
           where: {
             branchId,
@@ -463,15 +470,17 @@ export class ReportsService {
           select: { customerId: true },
           distinct: ['customerId'],
         });
-        const returning = new Set(earlier.map((o) => o.customerId!));
+        const returning = new Set(
+          earlier.flatMap((o) => (o.customerId ? [o.customerId] : [])),
+        );
         const byMonth = new Map<string, { n: Set<string>; r: Set<string> }>();
-        for (const o of inRange) {
-          const m = localDate(o.billedAt!, tz).slice(0, 7);
+        for (const o of complete) {
+          const m = localDate(o.billedAt, tz).slice(0, 7);
           const row = byMonth.get(m) ?? {
             n: new Set<string>(),
             r: new Set<string>(),
           };
-          (returning.has(o.customerId!) ? row.r : row.n).add(o.customerId!);
+          (returning.has(o.customerId) ? row.r : row.n).add(o.customerId);
           byMonth.set(m, row);
         }
         return out(
