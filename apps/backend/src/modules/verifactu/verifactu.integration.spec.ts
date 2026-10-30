@@ -350,7 +350,9 @@ d('VERI*FACTU against PostgreSQL', () => {
     const row = await prisma.verifactuSettings.findUniqueOrThrow({
       where: { branchId: ids.branchId },
     });
-    expect(Buffer.from(row.certEncrypted!).includes(p12.subarray(0, 32))).toBe(
+    expect(row.certEncrypted).not.toBeNull();
+    if (!row.certEncrypted) throw new Error('certificate was not persisted');
+    expect(Buffer.from(row.certEncrypted).includes(p12.subarray(0, 32))).toBe(
       false,
     ); // not stored in clear
 

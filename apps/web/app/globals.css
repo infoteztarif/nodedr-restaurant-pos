@@ -51,6 +51,9 @@
 }
 
 :root {
+  /* Self-hosted/LAN installs must build and render without reaching Google. */
+  --font-geist-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-geist-mono: "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   /* Nodedr OrderRestro — light palette. See DESIGN_SYSTEM.md for rationale
      (wine/burgundy primary is the one deliberate accent choice). */
   --background: #FBF9F8;

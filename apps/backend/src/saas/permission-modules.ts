@@ -23,7 +23,10 @@ export function moduleForPermission(permission: string): ModuleKey | null {
   if (permission.startsWith('orders.') || permission.startsWith('bills.')) {
     return ModuleKey.POS;
   }
-  if (permission.startsWith('discounts.') || permission.startsWith('refunds.')) {
+  if (
+    permission.startsWith('discounts.') ||
+    permission.startsWith('refunds.')
+  ) {
     return ModuleKey.POS;
   }
   return PREFIX_MODULES[permission.split('.')[0]] ?? null;

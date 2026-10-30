@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import type { PermissionKey } from '@nodedr-restaurant/types';
 import { EntitlementsService } from '../../saas/entitlements.service';
 import { moduleForPermission } from '../../saas/permission-modules';
+import type { ModuleKey } from '@prisma/client';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 import type { AuthenticatedRequest } from '../types/authenticated-request';
 
@@ -24,12 +25,14 @@ export class EntitlementsGuard implements CanActivate {
     await this.entitlements.assertTenantActive(request.user.restaurantId);
 
     const modules = new Set(
-      (required ?? []).map(moduleForPermission).filter(Boolean),
+      (required ?? [])
+        .map(moduleForPermission)
+        .filter((moduleKey): moduleKey is ModuleKey => moduleKey !== null),
     );
     for (const moduleKey of modules) {
       await this.entitlements.assertModuleEnabled(
         request.user.restaurantId,
-        moduleKey!,
+        moduleKey,
       );
     }
     return true;
