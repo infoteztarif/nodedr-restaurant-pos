@@ -55,6 +55,7 @@ export class IntegrationApiKeysService {
         restaurantId: actor.restaurantId,
         branchId: dto.branchId ?? null,
         name: dto.name,
+        provider: dto.provider,
         scopes: dto.scopes,
         tokenHash: hash,
         lastFour,
@@ -67,6 +68,7 @@ export class IntegrationApiKeysService {
     return {
       id: key.id,
       name: key.name,
+      provider: key.provider,
       token: raw,
       lastFour: key.lastFour,
       branchId: key.branchId,
@@ -84,6 +86,7 @@ export class IntegrationApiKeysService {
     return keys.map((key) => ({
       id: key.id,
       name: key.name,
+      provider: key.provider,
       lastFour: key.lastFour,
       branch: key.branch,
       scopes: key.scopes,

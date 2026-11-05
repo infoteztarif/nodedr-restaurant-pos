@@ -45,6 +45,26 @@ export class IntegrationApiKeyGuard implements CanActivate {
       throw new UnauthorizedException('Invalid or revoked API key');
     }
 
+    if (key.provider === 'SWIGGY' || key.provider === 'ZOMATO') {
+      const feature = await this.prisma.featureFlag.findUnique({
+        where: {
+          restaurantId_key: {
+            restaurantId: key.restaurantId,
+            key: `INTEGRATION_${key.provider}`,
+          },
+        },
+        select: { enabled: true, expiresAt: true },
+      });
+      if (
+        !feature?.enabled ||
+        (feature.expiresAt && feature.expiresAt <= new Date())
+      ) {
+        throw new ForbiddenException(
+          `${key.provider} integration is not licensed for this company`,
+        );
+      }
+    }
+
     const required = this.reflector.getAllAndOverride<string[]>(
       INTEGRATION_SCOPES_KEY,
       [context.getHandler(), context.getClass()],
@@ -63,6 +83,7 @@ export class IntegrationApiKeyGuard implements CanActivate {
       restaurantId: key.restaurantId,
       branchId: key.branchId,
       scopes: key.scopes,
+      provider: key.provider,
     };
 
     // Best-effort — must never block an already-authenticated request.

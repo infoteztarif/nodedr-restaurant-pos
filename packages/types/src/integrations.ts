@@ -28,8 +28,12 @@ export const integrationScopeSchema = z.enum(
 );
 export type IntegrationScope = z.infer<typeof integrationScopeSchema>;
 
+export const integrationProviderSchema = z.enum(["CUSTOM", "SWIGGY", "ZOMATO"]);
+export type IntegrationProvider = z.infer<typeof integrationProviderSchema>;
+
 export const createIntegrationApiKeySchema = z.object({
   name: z.string().trim().min(1).max(80),
+  provider: integrationProviderSchema.default("CUSTOM"),
   branchId: z.string().optional(),
   scopes: z.array(integrationScopeSchema).min(1),
 });

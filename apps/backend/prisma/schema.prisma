@@ -389,6 +389,9 @@ model IntegrationApiKey {
   branch       Branch?    @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
   name      String
+  // Identifies first-party aggregator credentials so platform feature
+  // licensing can disable Swiggy/Zomato independently per tenant.
+  provider  String   @default("CUSTOM")
   tokenHash String   @unique
   lastFour  String
   scopes    String[]

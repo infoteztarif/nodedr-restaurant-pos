@@ -21,6 +21,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PlatformAuthGuard, type PlatformRequest } from './platform-auth.guard';
 import { PlatformAuthService } from './platform-auth.service';
 
+const PLATFORM_FEATURES = [
+  'CUSTOMER_PORTAL',
+  'INTEGRATION_SWIGGY',
+  'INTEGRATION_ZOMATO',
+] as const;
+
 @Controller('v1/platform')
 export class PlatformController {
   constructor(
@@ -96,8 +102,43 @@ export class PlatformController {
           take: 1,
         },
         tenantModules: true,
+        featureFlags: {
+          where: { key: { in: [...PLATFORM_FEATURES] } },
+        },
       },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  @UseGuards(PlatformAuthGuard)
+  @Patch('tenants/:id/features/:featureKey')
+  updateFeature(
+    @Req() request: PlatformRequest,
+    @Param('id') restaurantId: string,
+    @Param('featureKey') featureKey: string,
+    @Body() body: { enabled?: boolean; expiresAt?: string | null; config?: object },
+  ) {
+    this.assertSuperAdmin(request);
+    if (!PLATFORM_FEATURES.includes(featureKey as (typeof PLATFORM_FEATURES)[number])) {
+      throw new BadRequestException('Invalid platform feature');
+    }
+    if (typeof body.enabled !== 'boolean') {
+      throw new BadRequestException('enabled must be boolean');
+    }
+    return this.prisma.featureFlag.upsert({
+      where: { restaurantId_key: { restaurantId, key: featureKey } },
+      create: {
+        restaurantId,
+        key: featureKey,
+        enabled: body.enabled,
+        expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
+        config: body.config,
+      },
+      update: {
+        enabled: body.enabled,
+        expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
+        config: body.config,
+      },
     });
   }
 
