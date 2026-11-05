@@ -1611,6 +1611,9 @@ model Order {
   // submits (kiosk). A retry after a dropped connection carries the same
   // key and gets the original order back instead of creating a second one.
   clientRequestId String?
+  // Opaque capability token for the customer-facing tracking page. It is
+  // generated only for ONLINE orders and reveals no customer PII.
+  trackingToken String? @unique
 
   // Delivery (Phase 5). deliveryFee is added on top of the item total at
   // checkout; the zone's fee is snapshotted so later zone edits never
