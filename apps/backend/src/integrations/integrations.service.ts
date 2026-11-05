@@ -17,6 +17,7 @@ export interface IntegrationKeyContext {
   restaurantId: string;
   branchId: string | null;
   scopes: string[];
+  provider: string;
 }
 
 /**
