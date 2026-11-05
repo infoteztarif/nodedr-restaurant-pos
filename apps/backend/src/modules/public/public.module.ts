@@ -5,10 +5,16 @@ import { PublicKioskController } from './public-kiosk.controller';
 import { PublicKioskService } from './public-kiosk.service';
 import { PublicMenuController } from './public-menu.controller';
 import { PublicMenuService } from './public-menu.service';
+import { CustomerTrackingController } from './customer-tracking.controller';
+import { CustomerTrackingService } from './customer-tracking.service';
 
 @Module({
   imports: [OrdersModule, NotificationsModule],
-  controllers: [PublicMenuController, PublicKioskController],
-  providers: [PublicMenuService, PublicKioskService],
+  controllers: [
+    PublicMenuController,
+    PublicKioskController,
+    CustomerTrackingController,
+  ],
+  providers: [PublicMenuService, PublicKioskService, CustomerTrackingService],
 })
 export class PublicModule {}
