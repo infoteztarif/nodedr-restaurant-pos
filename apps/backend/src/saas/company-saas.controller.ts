@@ -24,7 +24,7 @@ export class CompanySaasController {
   @Auth('settings.manage')
   @Get()
   async overview(@CurrentUser() user: SessionUser) {
-    const [departments, modules, users] = await Promise.all([
+    const [departments, modules, features, users] = await Promise.all([
       this.prisma.department.findMany({
         where: { restaurantId: user.restaurantId },
         include: { _count: { select: { users: true, roles: true } } },
@@ -32,6 +32,15 @@ export class CompanySaasController {
       }),
       this.prisma.tenantModule.findMany({
         where: { restaurantId: user.restaurantId },
+      }),
+      this.prisma.featureFlag.findMany({
+        where: {
+          restaurantId: user.restaurantId,
+          key: {
+            in: ['CUSTOMER_PORTAL', 'INTEGRATION_SWIGGY', 'INTEGRATION_ZOMATO'],
+          },
+        },
+        select: { key: true, enabled: true, expiresAt: true },
       }),
       this.prisma.user.findMany({
         where: { restaurantId: user.restaurantId, isActive: true },
@@ -45,7 +54,7 @@ export class CompanySaasController {
         orderBy: { name: 'asc' },
       }),
     ]);
-    return { departments, modules, users };
+    return { departments, modules, features, users };
   }
 
   @Auth('settings.manage')
