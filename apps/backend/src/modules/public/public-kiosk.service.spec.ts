@@ -19,6 +19,7 @@ const storedOrder = {
   orderNumber: '20261017-0001',
   createdAt: new Date('2026-10-17T10:00:00Z'),
   notes: 'Kiosk · Takeaway',
+  trackingToken: 'tracking-token',
   subtotal: dec('11'),
   taxAmount: dec('1'),
   totalAmount: dec('11'),
@@ -125,6 +126,7 @@ describe('PublicKioskService', () => {
         taxAmount: '1',
         totalAmount: '11',
         paid: false,
+        trackingToken: 'tracking-token',
       });
     });
 
