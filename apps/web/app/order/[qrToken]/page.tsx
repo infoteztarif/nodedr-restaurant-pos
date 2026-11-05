@@ -2,11 +2,13 @@
 
 import { BellRing, CheckCircle2, Leaf, Minus, Plus, Receipt, UtensilsCrossed } from "lucide-react";
 import { use, useEffect, useState } from "react";
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { ModifierPickerDialog } from "@/components/pos/modifier-picker-dialog";
 import { PopBurst } from "@/components/order/pop-burst";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -86,7 +88,7 @@ export default function PublicMenuPage({
   const [cart, setCart] = useState<CartLine[]>([]);
   const [pickerItem, setPickerItem] = useState<PublicMenuItem | null>(null);
   const queryClient = useQueryClient();
-  const [placed, setPlaced] = useState<{ orderNumber: string } | null>(null);
+  const [placed, setPlaced] = useState<{ orderNumber: string; trackingToken?: string | null } | null>(null);
   const [guestName, setGuestName] = useState("");
   const [nameDraft, setNameDraft] = useState("");
 
@@ -133,7 +135,7 @@ export default function PublicMenuPage({
 
   const placeOrder = useMutation({
     mutationFn: () =>
-      api.post<{ orderNumber: string }>(`/public/menu/${qrToken}/order`, {
+      api.post<{ orderNumber: string; trackingToken?: string | null }>(`/public/menu/${qrToken}/order`, {
         guestName,
         items: cart.map((l) => ({
           menuItemId: l.menuItemId,
@@ -216,6 +218,14 @@ export default function PublicMenuPage({
         <Button variant="outline" className="mt-2" onClick={() => setPlaced(null)}>
           {t("order.orderMore")}
         </Button>
+        {placed.trackingToken && (
+          <Link
+            href={`/track/${placed.trackingToken}`}
+            className={cn(buttonVariants(), "mt-1")}
+          >
+            Track this order
+          </Link>
+        )}
       </div>
     );
   }
