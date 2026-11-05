@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'node:crypto';
 import {
   canTransitionKot,
   KOT_STARTED_STATUSES,
@@ -325,6 +326,8 @@ export class OrdersService {
           guestName: dto.guestName,
           notes: dto.notes,
           clientRequestId: options.clientRequestId,
+          trackingToken:
+            channel === 'ONLINE' ? randomBytes(24).toString('base64url') : null,
           createdById: userId,
           subtotal: totals.subtotal,
           taxAmount: totals.taxAmount,

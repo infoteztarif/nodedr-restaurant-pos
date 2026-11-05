@@ -177,6 +177,7 @@ export class PublicKioskService {
       totalAmount: Prisma.Decimal;
       createdAt: Date;
       notes: string | null;
+      trackingToken: string | null;
       items: {
         nameSnapshot: string;
         quantity: number;
@@ -199,6 +200,7 @@ export class PublicKioskService {
       totalAmount: order.totalAmount.toString(),
       // Kiosk orders are never paid by the kiosk itself.
       paid: false,
+      trackingToken: order.trackingToken,
     };
   }
 }
