@@ -55,6 +55,15 @@ const MODULES: ModuleKey[] = [
   "OPERATIONS",
   "AI",
 ];
+type PlatformFeature =
+  | "CUSTOMER_PORTAL"
+  | "INTEGRATION_SWIGGY"
+  | "INTEGRATION_ZOMATO";
+const PLATFORM_FEATURES: { key: PlatformFeature; label: string }[] = [
+  { key: "CUSTOMER_PORTAL", label: "Customer portal" },
+  { key: "INTEGRATION_SWIGGY", label: "Swiggy" },
+  { key: "INTEGRATION_ZOMATO", label: "Zomato" },
+];
 interface Plan {
   id: string;
   name: string;
@@ -66,6 +75,7 @@ interface Tenant {
   status: string;
   _count: { branches: number; users: number };
   tenantModules: { moduleKey: ModuleKey; enabled: boolean }[];
+  featureFlags: { key: PlatformFeature; enabled: boolean }[];
   subscriptions: { plan: Plan; status: string }[];
 }
 interface Overview {
@@ -161,6 +171,28 @@ export default function PlatformDashboard() {
     await platformApi.post(`/tenants/${tenantId}/subscriptions`, { planId });
     toast.success("Subscription plan assigned");
     await load();
+  }
+  async function setFeature(
+    tenant: Tenant,
+    featureKey: PlatformFeature,
+    enabled: boolean,
+  ) {
+    await platformApi.patch(`/tenants/${tenant.id}/features/${featureKey}`, {
+      enabled,
+    });
+    setTenants((rows) =>
+      rows.map((row) =>
+        row.id !== tenant.id
+          ? row
+          : {
+              ...row,
+              featureFlags: [
+                ...row.featureFlags.filter((f) => f.key !== featureKey),
+                { key: featureKey, enabled },
+              ],
+            },
+      ),
+    );
   }
 
   return (
@@ -275,6 +307,30 @@ export default function PlatformDashboard() {
                       </label>
                     );
                   })}
+                </div>
+                <div className="mt-4 border-t pt-4">
+                  <p className="mb-2 text-xs font-medium text-muted-foreground">
+                    Customer and aggregator features
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    {PLATFORM_FEATURES.map(({ key, label }) => {
+                      const feature = tenant.featureFlags.find((f) => f.key === key);
+                      return (
+                        <label
+                          key={key}
+                          className="flex items-center justify-between gap-2 rounded-lg border p-2.5 text-xs"
+                        >
+                          <span>{label}</span>
+                          <Switch
+                            checked={feature?.enabled ?? false}
+                            onCheckedChange={(enabled) =>
+                              void setFeature(tenant, key, enabled)
+                            }
+                          />
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
               </Card>
             ))
