@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { INTEGRATION_SCOPES, type IntegrationScope } from "@nodedr-restaurant/types";
+import {
+  INTEGRATION_SCOPES,
+  type IntegrationProvider,
+  type IntegrationScope,
+} from "@nodedr-restaurant/types";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,6 +30,7 @@ export function CreateIntegrationKeyDialog({
 }) {
   const { branches } = useBranch();
   const [name, setName] = useState("");
+  const [provider, setProvider] = useState<IntegrationProvider>("CUSTOM");
   const [branchId, setBranchId] = useState<string>(ALL_LOCATIONS);
   const [scopes, setScopes] = useState<IntegrationScope[]>([]);
   const createKey = useCreateIntegrationApiKey();
@@ -41,7 +46,12 @@ export function CreateIntegrationKeyDialog({
       return;
     }
     createKey.mutate(
-      { name: name.trim(), branchId: branchId === ALL_LOCATIONS ? undefined : branchId, scopes },
+      {
+        name: name.trim(),
+        provider,
+        branchId: branchId === ALL_LOCATIONS ? undefined : branchId,
+        scopes,
+      },
       {
         onSuccess: (created) => onCreated(created.token),
         onError: (err) => toast.error(err instanceof ApiError ? err.message : "Could not create API key"),
@@ -67,6 +77,31 @@ export function CreateIntegrationKeyDialog({
               required
               autoFocus
             />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="ik-provider">Provider</Label>
+            <Select
+              value={provider}
+              onValueChange={(value) =>
+                setProvider((value ?? "CUSTOM") as IntegrationProvider)
+              }
+            >
+              <SelectTrigger id="ik-provider">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="CUSTOM">Website / custom</SelectItem>
+                <SelectItem value="SWIGGY">Swiggy</SelectItem>
+                <SelectItem value="ZOMATO">Zomato</SelectItem>
+              </SelectContent>
+            </Select>
+            {provider !== "CUSTOM" && (
+              <p className="text-xs text-muted-foreground">
+                Super Admin must license this provider for the company before
+                the key can receive orders.
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
